@@ -5,7 +5,7 @@
 #include <thread>
 
 // Spinlock Example with memory_order
-// & scoped Lock
+// & scoped Lock & implementation sample
 
 
 class Spinlock {
