@@ -4,6 +4,8 @@
 #include <atomic>
 #include <thread>
 
+// Spinlock Example with memory_order
+
 
 class Spinlock {
 	std::atomic_flag m_atomic=ATOMIC_FLAG_INIT ;
