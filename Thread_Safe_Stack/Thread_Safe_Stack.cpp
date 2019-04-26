@@ -19,7 +19,7 @@ private:
 	{
 		std::shared_ptr<T> data;
 		node* next;
-		node(T const& data) : data{ std::make_shared<T>(data) } { }
+		node(T const& data) : data{ std::make_shared<T>(data) }, next{ nullptr } { }
 	};
 	std::atomic<node*>head;
 	std::atomic<unsigned>threads_in_pop;		// counter for the threads trying to pop()
@@ -39,7 +39,7 @@ private:
 			node* nodes_to_delete = to_be_deleted.exchange(nullptr);	// if only thread, deletion is safe so change the value of atomic to nullptr
 			if (!--threads_in_pop) 
 			{
-				delete_nodes(nodes_to_delete);														// check if there are any threads after the first check; if none then safe to delete
+				delete_nodes(nodes_to_delete);						   // check if there are any threads after the first check; if none then safe to delete
 			}
 			else if (nodes_to_delete) 
 			{
@@ -84,7 +84,8 @@ public:
 		//std::cout << "\nHead data: " << *(head.load()->data) << "Thread ID: " << std::this_thread::get_id();
 	}
 
-	std::shared_ptr<T> pop() {
+	std::shared_ptr<T> pop() 
+	{
 		++threads_in_pop;				
 		node * old_head = head.load();
 		while (old_head && !head.compare_exchange_weak(old_head, old_head->next));
@@ -107,7 +108,6 @@ int main()
 	std::thread t2(&lock_free_stack<int>::push, &lf_stack, 20);
 	std::thread t1(&lock_free_stack<int>::push, &lf_stack, 10);
 	std::thread t3(&lock_free_stack<int>::pop, &lf_stack);
-
 
 	t1.join();
 	t2.join();
