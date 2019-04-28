@@ -1,4 +1,5 @@
 #include <iostream>
+#include <functional>
 //#include <thread>
 //#include <atomic>
 //#include <memory>
@@ -31,6 +32,61 @@ bool outstanding_hazard_pointers_for(void* p)					// scan through the hazard_poi
 	return false;											// no need to  check every entry since unowned hazard pointer entries  will have nullptr value
 }
 
+template<typename T>
+void do_delete(void* p)
+{
+	delete static_cast<T*>(p);
+}
+
+struct data_to_reclaim
+{
+	void* data;
+	std::function<void(void*)>deleter;
+	data_to_reclaim* next;
+
+	template<typename T>
+	data_to_reclaim(T* p) 
+		: data{ p }, deleter{ &do_delete<T> }, next{ nullptr } 
+		{ }
+	~data_to_reclaim()
+	{
+		deleter(data);
+	}
+};
+
+std::atomic<data_to_reclaim*>nodes_to_reclaim;
+
+void add_to_reclaim_list(data_to_reclaim* node)
+{
+	node->next = nodes_to_reclaim.load();
+	while (!nodes_to_reclaim.compare_exchange_weak(node->next, node));
+}
+
+
+
+template<typename T>				
+void reclaim_later(T* data)									// convert void* data to type data_to_reclaim so it can be deleted when possible								
+{															// delete cannot be used for void*; needs real type of the pointer
+	add_to_reclaim_list(new data_to_reclaim(data));			//create a new instance of data_to_reclaim for the passed pointer
+}
+
+void delete_nodes_with_no_hazards()
+{
+	data_to_reclaim* current = nodes_to_reclaim.exchange(nullptr);
+	while (current)
+	{
+		data_to_reclaim* const next = current->next;
+		if (!outstanding_hazard_pointers_for(current->data))
+		{
+			delete current;
+		} 
+		else
+		{
+			add_to_reclaim_list(current);
+		}
+		current = next;
+	}
+}
 
 
 template<typename T>
