@@ -5,8 +5,6 @@
 //#include <memory>
 #include "Hazard_Pointers.hpp"
 
-// Under Progress!!!!!!
- 
 // Example for Lock Free Stack from book Concurency in Action
 // this is Lock free but it is not wait free since atomic.compare_exchange_weak() can fail constantly    
 // might fail during some runs; needs more testing
