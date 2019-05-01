@@ -11,6 +11,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Thread_Safe_Stack", "Thread
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Thread_Safe_Stack_Hazard_Pointers", "Thread_Safe_Stack_Hazard_Pointers\Thread_Safe_Stack_Hazard_Pointers.vcxproj", "{FA8EFB60-AEE2-4B2D-AFC2-09BD8A203227}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Thread_Safe_Lock_Free_Queue", "Thread_Safe_Lock_Free_Queue\Thread_Safe_Lock_Free_Queue.vcxproj", "{8F2D39B9-4EB8-463C-8566-847FD8BFA69B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -51,6 +53,14 @@ Global
 		{FA8EFB60-AEE2-4B2D-AFC2-09BD8A203227}.Release|x64.Build.0 = Release|x64
 		{FA8EFB60-AEE2-4B2D-AFC2-09BD8A203227}.Release|x86.ActiveCfg = Release|Win32
 		{FA8EFB60-AEE2-4B2D-AFC2-09BD8A203227}.Release|x86.Build.0 = Release|Win32
+		{8F2D39B9-4EB8-463C-8566-847FD8BFA69B}.Debug|x64.ActiveCfg = Debug|x64
+		{8F2D39B9-4EB8-463C-8566-847FD8BFA69B}.Debug|x64.Build.0 = Debug|x64
+		{8F2D39B9-4EB8-463C-8566-847FD8BFA69B}.Debug|x86.ActiveCfg = Debug|Win32
+		{8F2D39B9-4EB8-463C-8566-847FD8BFA69B}.Debug|x86.Build.0 = Debug|Win32
+		{8F2D39B9-4EB8-463C-8566-847FD8BFA69B}.Release|x64.ActiveCfg = Release|x64
+		{8F2D39B9-4EB8-463C-8566-847FD8BFA69B}.Release|x64.Build.0 = Release|x64
+		{8F2D39B9-4EB8-463C-8566-847FD8BFA69B}.Release|x86.ActiveCfg = Release|Win32
+		{8F2D39B9-4EB8-463C-8566-847FD8BFA69B}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
