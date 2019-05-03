@@ -4,12 +4,8 @@
 #include <cassert>
 #include <memory>
 
-// Under Progress!!!!!!
 
 // Example for Lock Free Stack from book Concurency in Action
-// UNDER CONSTRUCTION; the example is not finished;
-	// - needs to delete pointer on the heap
-	// = needs memory_order semantics applied for better performance
 // Lock free but it is not wait free since atomic.compare_exchange_weak() can fail constantly    
 
 template<typename T>
