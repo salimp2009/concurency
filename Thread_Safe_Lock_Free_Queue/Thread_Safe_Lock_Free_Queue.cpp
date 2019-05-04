@@ -2,17 +2,22 @@
 #include <memory>
 #include <atomic>
 #include <cassert>
+#include <thread>
 
 // Example to implement a Thread Safe Lock Free Queue 
-//- first implement a regular linked list queue with atomic headand tail pointers to node; DONE
-//- revise for multiple thread; NOT DONE 
+// throws an exception error at line 156; due to target was nullptr in atomic compare_exchange 
+// Exception error at line 156 in push() 
+// T* old_data = nullptr;
+// if (old_tail.ptr->data.compare_exchange_strong(old_data, new_data.get()));
+// Unhandled exception thrown: write access violation.
+//** _Tgt** was nullptr.occurred
+
 
 template<typename T>
 class lock_free_queue
 {
 private:
 	struct node;
-
 	struct counted_node_ptr
 	{
 		int external_count;
@@ -30,9 +35,9 @@ private:
 												// and atomic operations will also most likely to be lock free on every platform 
 	struct node
 	{
-		std::atomic<T*>data;
-		std::atomic<node_counter>count;
-		counted_node_ptr next;
+		std::atomic<T*> data;
+		std::atomic<node_counter> count;
+		std::atomic<counted_node_ptr> next;
 		node()
 		{
 			node_counter new_count;
@@ -40,8 +45,11 @@ private:
 			new_count.external_counters = 2;	// every new starts out referenced from tail and 
 			count.store(new_count);				// from next pointer of previous node once it is added to queue
 
-			next.ptr = nullptr;
-			next.external_count = 0;
+			counted_node_ptr new_next;
+			new_next.ptr = nullptr;
+			new_next.external_count = 0;
+			next.store(new_next);
+			//delete new_next.ptr;
 		}
 
 		void release_ref()
@@ -94,12 +102,22 @@ private:
 		}
 	}
 
+	void set_new_tail(counted_node_ptr& old_tail, counted_node_ptr const &new_tail)
+	{
+		node* const current_tail_ptr = old_tail.ptr;
+		while (!tail.compare_exchange_weak(old_tail, new_tail) && old_tail.ptr == current_tail_ptr);
+		if (old_tail.ptr == current_tail_ptr)
+			free_external_counter(old_tail);
+		else
+			current_tail_ptr->release_ref();
+	}
+
 public:
 	
-	//lock_free_queue() : head{}, tail{ head.load() } { }
-	//lock_free_queue(const lock_free_queue&) = delete;
-	//lock_free_queue& operator=(const lock_free_queue&) = delete;
-	//~lock_free_queue() = default;
+	lock_free_queue() : head{}, tail{ } { }
+	lock_free_queue(const lock_free_queue&) = delete;
+	lock_free_queue& operator=(const lock_free_queue&) = delete;
+	~lock_free_queue() = default;
 	
 	std::unique_ptr<T> pop()
 	{
@@ -110,10 +128,11 @@ public:
 			node* const ptr = old_head.ptr;
 			if (ptr == tail.load().ptr)
 			{
-				ptr->release_ref();
+				//ptr->release_ref();
 				return std::unique_ptr<T>();
 			}
-			if (head.compare_exchange_strong(old_head, ptr->next))
+			counted_node_ptr next = ptr->next.load();				// using memory_order_cst; might be changed if required
+			if (head.compare_exchange_strong(old_head, next))
 			{
 				T* const res = ptr->data.exchange(nullptr);
 				free_external_counter(old_head);
@@ -126,7 +145,7 @@ public:
 
 	void push(T new_value)
 	{
-		std::unique_ptr<T>new_data(new T{ new_value });
+		std::unique_ptr<T>new_data{ new T(new_value) };
 		counted_node_ptr new_next;
 		new_next.ptr = new node;
 		new_next.external_count = 1;
@@ -137,29 +156,65 @@ public:
 			T* old_data = nullptr;
 			if (old_tail.ptr->data.compare_exchange_strong(old_data, new_data.get()))
 			{
-				old_tail.ptr->next = new_next;
-				old_tail = tail.exchange(new_next);
-				free_external_counter(old_tail);
+				counted_node_ptr old_next{ 0 };
+				if (!old_tail.ptr->next.compare_exchange_strong(old_next, new_next))
+				{
+					delete new_next.ptr;
+					new_next = old_next;
+				}
+				set_new_tail(old_tail, new_next);
 				new_data.release();
 				break;
 			}
-			old_tail.ptr->release_ref();
+			else
+			{
+				counted_node_ptr old_next{ 0 };
+				if (old_tail.ptr->next.compare_exchange_strong(old_next, new_next))
+				{
+					old_next = new_next;
+					new_next.ptr = new node;
+				}
+				set_new_tail(old_tail, old_next);
+			}
 		}
 	}
-
 };
 
+void push_queue(lock_free_queue<int>* q)
+{
+	for (int i{ 0 }; i < 10; ++i) 
+	{
+		q->push(i);
+		std::cout << "\nPushing: " << i << '\n';
+	}
+}
+
+void pop_queue(lock_free_queue<int>* q)
+{
+	for (int i{ 0 }; i < 10; ++i)
+	{
+		std::shared_ptr<int>p=q->pop();
+		std::cout << "\nPop(): " << *p << '\n';
+	}
+}
 
 
 int main()
 {
 	lock_free_queue<int>my_queue;
 
-	my_queue.push(10);
-	my_queue.push(20);
+	std::thread t1(&lock_free_queue<int>::push, &my_queue, 30);
+	std::thread t2(push_queue,&my_queue);
+	std::thread t3(pop_queue, &my_queue);
 
-	std::cout << "\npop front: " << (*my_queue.pop()) << '\n';
-	std::cout << "\npop front: " << (*my_queue.pop()) << '\n';
+	my_queue.push(10);
+
+	t1.join();
+	t2.join();
+	t3.join();
+
+	//std::cout << "\npop front: " << (*my_queue.pop()) << '\n';
+	//std::cout << "\npop front: " << (*my_queue.pop()) << '\n';
 	 //std::cout << "\nPop front: " << (*my_queue.pop()) << '\n';
    
 	return 0;
