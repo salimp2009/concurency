@@ -3,6 +3,8 @@
 #include <atomic>
 #include <cassert>
 #include <thread>
+#include <cstdio>
+
 
 // Example to implement a Thread Safe Lock Free Queue 
 // throws an exception error at line 156; due to target was nullptr in atomic compare_exchange 
@@ -50,6 +52,9 @@ private:
 			new_next.external_count = 0;
 			next.store(new_next);
 			//delete new_next.ptr;
+
+			T* new_data{ nullptr };
+			data.store(new_data);
 		}
 
 		void release_ref()
@@ -180,7 +185,7 @@ public:
 	}
 };
 
-void push_queue(lock_free_queue<int>* q)
+void push_queue(lock_free_queue<int> *q)
 {
 	for (int i{ 0 }; i < 10; ++i) 
 	{
@@ -204,15 +209,18 @@ int main()
 	lock_free_queue<int>my_queue;
 
 	std::thread t1(&lock_free_queue<int>::push, &my_queue, 30);
-	std::thread t2(push_queue,&my_queue);
-	std::thread t3(pop_queue, &my_queue);
+	std::thread t2(&lock_free_queue<int>::push, &my_queue, 30);
+	std::thread t3(&lock_free_queue<int>::push, &my_queue, 30);
+	std::thread t4(push_queue,&my_queue);
+	std::thread t5(pop_queue, &my_queue);
 
 	my_queue.push(10);
 
 	t1.join();
 	t2.join();
 	t3.join();
-
+	t4.join();
+	t5.join();
 	//std::cout << "\npop front: " << (*my_queue.pop()) << '\n';
 	//std::cout << "\npop front: " << (*my_queue.pop()) << '\n';
 	 //std::cout << "\nPop front: " << (*my_queue.pop()) << '\n';
