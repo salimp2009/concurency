@@ -108,8 +108,8 @@ int main()
 {
     
 	std::thread t1(B);
-	std::thread t2(B);
-	std::thread t3(B);
+	std::thread t2(A);
+	std::thread t3(A);
 	std::thread t4(B);
 
 	B();
