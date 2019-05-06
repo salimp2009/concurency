@@ -20,9 +20,9 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
-    <ProjectGuid>{8F2D39B9-4EB8-463C-8566-847FD8BFA69B}</ProjectGuid>
+    <ProjectGuid>{3B103866-0690-4EF4-A66C-ED4E91276AEF}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>ThreadSafeLockFreeQueue</RootNamespace>
+    <RootNamespace>ThreadSafeLockFreeQueueNew</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -143,7 +143,6 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -153,9 +152,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Thread_Safe_Lock_Free_Queue.cpp">
-      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdcpp17</LanguageStandard>
-    </ClCompile>
+    <ClCompile Include="Thread_Safe_Lock_Free_Queue_New.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

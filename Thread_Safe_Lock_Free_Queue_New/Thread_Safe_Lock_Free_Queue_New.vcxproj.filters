@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Thread_Safe_Lock_Free_Queue.cpp">
+    <ClCompile Include="Thread_Safe_Lock_Free_Queue_New.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

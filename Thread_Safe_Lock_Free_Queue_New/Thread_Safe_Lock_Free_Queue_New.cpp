@@ -3,7 +3,6 @@
 #include <atomic>
 #include <cassert>
 #include <thread>
-#include <cstdio>
 
 
 // Example to implement a Thread Safe Lock Free Queue 
@@ -51,9 +50,9 @@ private:
 			new_next.ptr = nullptr;
 			new_next.external_count = 0;
 			next.store(new_next);
-			//delete new_next.ptr;
+	
 
-			T* new_data{ nullptr };
+			T* new_data{nullptr};
 			data.store(new_data);
 		}
 
@@ -65,8 +64,8 @@ private:
 			{
 				new_counter = old_counter;
 				--new_counter.internal_count;
-			} while (!count.compare_exchange_strong(old_counter, new_counter, 
-									std::memory_order_acquire,  std::memory_order_relaxed));
+			} while (!count.compare_exchange_strong(old_counter, new_counter,
+				std::memory_order_acquire, std::memory_order_relaxed));
 
 			if (!new_counter.internal_count && !new_counter.external_counters)  // if both internal and external counts are zero, this is last reference
 			{
@@ -75,15 +74,15 @@ private:
 		}
 	};
 
-	static void increase_external_count(std::atomic<counted_node_ptr>& counter, counted_node_ptr& old_counter)												
+	static void increase_external_count(std::atomic<counted_node_ptr>& counter, counted_node_ptr& old_counter)
 	{
 		counted_node_ptr new_counter;
-		do 
+		do
 		{
 			new_counter = old_counter;
 			++new_counter.external_count;
 		} while (!counter.compare_exchange_strong(old_counter, new_counter,
-									std::memory_order_acquire, std::memory_order_relaxed));
+			std::memory_order_acquire, std::memory_order_relaxed));
 		old_counter.external_count = new_counter.external_count;
 	}
 
@@ -100,14 +99,14 @@ private:
 			--new_counter.external_counters;
 			new_counter.internal_count += count_increase;
 		} while (!ptr->count.compare_exchange_strong(old_counter, new_counter,
-										std::memory_order_acquire, std::memory_order_relaxed));
+			std::memory_order_acquire, std::memory_order_relaxed));
 		if (!new_counter.internal_count && !new_counter.external_counters)
 		{
 			delete ptr;
 		}
 	}
 
-	void set_new_tail(counted_node_ptr& old_tail, counted_node_ptr const &new_tail)
+	void set_new_tail(counted_node_ptr& old_tail, counted_node_ptr const& new_tail)
 	{
 		node* const current_tail_ptr = old_tail.ptr;
 		while (!tail.compare_exchange_weak(old_tail, new_tail) && old_tail.ptr == current_tail_ptr);
@@ -118,12 +117,12 @@ private:
 	}
 
 public:
-	
+
 	lock_free_queue() : head{}, tail{ } { }
 	lock_free_queue(const lock_free_queue&) = delete;
 	lock_free_queue& operator=(const lock_free_queue&) = delete;
 	~lock_free_queue() = default;
-	
+
 	std::unique_ptr<T> pop()
 	{
 		counted_node_ptr old_head = head.load(std::memory_order_relaxed);
@@ -144,7 +143,7 @@ public:
 				return std::unique_ptr<T>(res);
 			}
 			ptr->release_ref();
-		}	
+		}
 	}
 
 
@@ -155,10 +154,10 @@ public:
 		new_next.ptr = new node;
 		new_next.external_count = 1;
 		counted_node_ptr old_tail = tail.load();
-		for(;;)
+		for (;;)
 		{
 			increase_external_count(tail, old_tail);
-			T* old_data = nullptr;
+			T* old_data{ new T() };
 			if (old_tail.ptr->data.compare_exchange_strong(old_data, new_data.get()))
 			{
 				counted_node_ptr old_next{ 0 };
@@ -185,9 +184,9 @@ public:
 	}
 };
 
-void push_queue(lock_free_queue<int> *q)
+void push_queue(lock_free_queue<int>* q)
 {
-	for (int i{ 0 }; i < 10; ++i) 
+	for (int i{ 0 }; i < 10; ++i)
 	{
 		q->push(i);
 		std::cout << "\nPushing: " << i << '\n';
@@ -198,7 +197,7 @@ void pop_queue(lock_free_queue<int>* q)
 {
 	for (int i{ 0 }; i < 10; ++i)
 	{
-		std::shared_ptr<int>p=q->pop();
+		std::shared_ptr<int>p = q->pop();
 		std::cout << "\nPop(): " << *p << '\n';
 	}
 }
@@ -209,9 +208,9 @@ int main()
 	lock_free_queue<int>my_queue;
 
 	std::thread t1(&lock_free_queue<int>::push, &my_queue, 30);
-	std::thread t2(&lock_free_queue<int>::push, &my_queue, 30);
-	std::thread t3(&lock_free_queue<int>::push, &my_queue, 30);
-	std::thread t4(push_queue,&my_queue);
+	std::thread t2(&lock_free_queue<int>::push, &my_queue, 40);
+	std::thread t3(&lock_free_queue<int>::push, &my_queue, 50);
+	std::thread t4(push_queue, &my_queue);
 	std::thread t5(pop_queue, &my_queue);
 
 	my_queue.push(10);
@@ -224,6 +223,6 @@ int main()
 	//std::cout << "\npop front: " << (*my_queue.pop()) << '\n';
 	//std::cout << "\npop front: " << (*my_queue.pop()) << '\n';
 	 //std::cout << "\nPop front: " << (*my_queue.pop()) << '\n';
-   
+
 	return 0;
 }
