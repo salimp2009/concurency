@@ -22,8 +22,8 @@ int main()
 	//std::array<std::byte, 2000>buf;
 	//std::pmr::monotonic_buffer_resource pool{ buf.data(), buf.size()};
 
-	std::vector<int> vec;
-	for (unsigned long i{ 0 }; i <1000000; ++i)
+	std::vector<unsigned long> vec;
+	for (unsigned long i{ 0 }; i <20000ul; ++i)
 		vec.push_back(i);
 
 	auto sum = parallel_accumulate(vec.begin(), vec.end(), 0l);
@@ -33,10 +33,10 @@ int main()
 	
 	std::sort(std::execution::par_unseq, vec.begin(), vec.end());
 	std::for_each(std::execution::par, vec.begin(), vec.end(),
-		[](int& elem) {elem *=elem;});
+		[](auto& elem) {elem *=elem;});
 	auto num = std::count_if(std::execution::par, 
 							vec.begin(), vec.end(),
-							[](int elem) {return elem % 2 == 0; } );
+							[](const auto& elem) {return elem % 2 == 0; } );
 
 	std::cout << "\nEven elements: " << num << '\n';
 	std::cout <<"Vec[5]="<<vec[5]<<'\n';

@@ -91,8 +91,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>
-      </LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <EnableModules>
       </EnableModules>
       <EnablePREfast>false</EnablePREfast>
@@ -124,6 +123,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
